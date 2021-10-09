@@ -38,6 +38,7 @@ public class MascotaSvc extends ConnectionBD{
 			for (int i = 0; i < m.getGeolocation().size(); i++) {
 				String value = m.getGeolocation().get(i).getLatitude() + "," + m.getGeolocation().get(i).getLongitude() + "," + m.getTimestamp();
 				jedis.lpush(m.getMicrochip(), value);
+				jedis.expire(m.getMicrochip(), 3600);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
