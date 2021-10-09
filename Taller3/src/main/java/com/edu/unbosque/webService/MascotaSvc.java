@@ -1,21 +1,20 @@
 package com.edu.unbosque.webService;
 
+import java.util.Date;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
-import org.bson.Document;
-
-import com.edu.unbosque.connectiobd.ConnectionMongoBD;
+import com.edu.unbosque.connectiobd.ConnectionBD;
 import com.edu.unbosque.model.MascotaVO;
 import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 
 @Path("/petsvc")
-public class MascotaSvc extends ConnectionMongoBD{
+public class MascotaSvc extends ConnectionBD{
 	
 	private static final DBCollection collection = database.getCollection("Mascota");
 	private static Gson gson = new Gson();
@@ -28,11 +27,18 @@ public class MascotaSvc extends ConnectionMongoBD{
 		try {
 			BasicDBObject doc = new BasicDBObject();
 			
+			m.setTimestamp(new Date());
+			
 			String obj = gson.toJson(m);
 			
 			 doc = BasicDBObject.parse(obj);
 			
 			collection.insert(doc);
+			
+			for (int i = 0; i < m.getGeolocation().size(); i++) {
+				String value = m.getGeolocation().get(i).getLatitude() + "," + m.getGeolocation().get(i).getLongitude() + "," + m.getTimestamp();
+				jedis.lpush(m.getMicrochip(), value);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

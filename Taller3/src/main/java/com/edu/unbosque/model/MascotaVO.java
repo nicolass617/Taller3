@@ -1,6 +1,7 @@
 package com.edu.unbosque.model;
 
 import java.util.Date;
+import java.util.List;
 
 public class MascotaVO {
 
@@ -10,8 +11,8 @@ public class MascotaVO {
 	private String pet_name;
 	private String owner_name;
 	private String species;
-	private GeolocationVO geolocation;
-	private Vital_signsVO vital_signs;
+	private List<GeolocationVO> geolocation;
+	private List<Vital_signsVO> vital_signs;
 
 	public String get_id() {
 		return _id;
@@ -61,19 +62,19 @@ public class MascotaVO {
 		this.species = species;
 	}
 
-	public GeolocationVO getGeolocation() {
+	public List<GeolocationVO> getGeolocation() {
 		return geolocation;
 	}
 
-	public void setGeolocation(GeolocationVO geolocation) {
+	public void setGeolocation(List<GeolocationVO> geolocation) {
 		this.geolocation = geolocation;
 	}
 
-	public Vital_signsVO getVital_signs() {
+	public List<Vital_signsVO> getVital_signs() {
 		return vital_signs;
 	}
 
-	public void setVital_signs(Vital_signsVO vital_signs) {
+	public void setVital_signs(List<Vital_signsVO> vital_signs) {
 		this.vital_signs = vital_signs;
 	}
 
