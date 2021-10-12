@@ -2,7 +2,11 @@ package com.edu.unbosque.model;
 
 import java.util.Date;
 import java.util.List;
-
+/**
+ * 
+ * @author Nicolás Ávila, Sebastián Moncaleano, Diego Torres
+ *Clase que representa la capa de vista para Mascota 
+ */
 public class MascotaVO {
 
 	private String _id;
@@ -14,6 +18,7 @@ public class MascotaVO {
 	private GeolocationVO geolocation;
 	private Vital_signsVO vital_signs;
 
+	//Getters and setters de nuestra clase
 	public String get_id() {
 		return _id;
 	}

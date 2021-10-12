@@ -1,11 +1,17 @@
 package com.edu.unbosque.model;
 
+/**
+ * 
+ * @author Nicolás Ávila, Sebastián Moncaleano, Diego Torres
+ *Clase que representa la capa de vista para vital_sings 
+ */
 public class Vital_signsVO {
 
 	private double temperature;
 	private double heart_rate;
 	private double breathing_frecuency;
 
+	//Getters and setters de nuestra clase
 	public double getTemperature() {
 		return temperature;
 	}
