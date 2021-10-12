@@ -18,6 +18,7 @@ import com.edu.unbosque.model.MascotaVO;
 import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 /**
  * 
  * @author Nicolás Ávila, Sebastián Moncaleano, Diego Torres
@@ -132,5 +133,39 @@ public class MascotaSvc extends ConnectionBD{
 		//Se retorna el geoJSon creado
 		return geo;
 	}
+	
+	@GET
+	@Path("/findRareSings")
+	@Consumes({MediaType.APPLICATION_JSON})
+	@Produces({MediaType.APPLICATION_JSON})
+	public DBCursor findRareSings(MascotaVO m, Date init, Date fin) {
+		
+		BasicDBObject inQuery = new BasicDBObject();
+		
+		List<Date> list = new ArrayList<Date>();
+	    list.add(init);
+	    list.add(fin);
+	    inQuery.put("timestamp", new BasicDBObject("$in", list));
+		
+		BasicDBObject andQuery1 = new BasicDBObject();
+		List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+		obj.add(new BasicDBObject("microchip", m.getMicrochip()));
+		obj.add(inQuery);
+		andQuery1.put("$and", obj);
+		  
+		BasicDBObject andQuery2 = new BasicDBObject();
+		List<BasicDBObject> obj1 = new ArrayList<BasicDBObject>();
+		obj1.add(new BasicDBObject("microchip", m.getMicrochip()));
+		obj1.add(andQuery1);
+		andQuery2.put("$and", obj1);
+		
+		
+		return collection.find(andQuery2);
+		
+	
+		
+	}
+	
+	
 
 }
