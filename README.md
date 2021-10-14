@@ -10,3 +10,5 @@
 - MongoBD Compass
 - Redis
 
+## URL del vídeo:
+- 
