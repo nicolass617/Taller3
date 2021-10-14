@@ -151,18 +151,20 @@ public class MascotaSvc extends ConnectionBD{
 	@Produces({MediaType.APPLICATION_JSON})
 	public List<DBObject> findRareSings(MascotaVO m, @QueryParam("DateInit") Date init, @QueryParam("DateEnd") Date fin) {
 		
+		
+		
 		//Query de in, donde se buscarán los documentos que estén entre un rango de dos fechas
 		BasicDBObject inQuery = new BasicDBObject();
 
 		//Se crea una lista donde estarán las dos dates para nuestro in
-		List<Date> list = new ArrayList<Date>();
+		List<DBObject> list = new ArrayList<DBObject>();
 		
 		//Se añaden los dates a la lista
-		list.add(init);
-		list.add(fin);
+		list.add( new BasicDBObject( "timestamp",new BasicDBObject("$gte",init)));
+		list.add(new BasicDBObject( "timestamp", new BasicDBObject("$lte",fin)));
 		
 		//Query de in
-		inQuery.put("timestamp", new BasicDBObject("$in", list));
+		inQuery.put("$and", list);
 
 		//Se une el query anterior mediante un AND, con una consulta de que el microchip sea igual al microchip del JSon que entra al método
 		BasicDBObject andQuery1 = new BasicDBObject();
@@ -175,6 +177,7 @@ public class MascotaSvc extends ConnectionBD{
 		String specie = collection.findOne(new BasicDBObject("microchip", m.getMicrochip())).get("species").toString();
 		BasicDBObject andQuery2 = new BasicDBObject();
 		BasicDBObject orQuery = new BasicDBObject();
+		BasicDBObject orQuery2 = new BasicDBObject();
 		if (specie.equalsIgnoreCase("Cat")) {
 			
 			//Signos vitales para un gato desde donde se considera anormal
@@ -187,9 +190,14 @@ public class MascotaSvc extends ConnectionBD{
 			orQ.add(new BasicDBObject(new BasicDBObject("vital_signs.temperature", new BasicDBObject("$gte", temp))));
 			orQ.add(new BasicDBObject("vital_signs.breathing_frecuency",
 					new BasicDBObject("$gte", breathing_frecuency)));
-			orQ.add(new BasicDBObject("vital_signs.heart_rate", new BasicDBObject("$gte", heart_rate)));
 			orQuery.put("$or", orQ);
-
+			
+			List<BasicDBObject> orQ2 = new ArrayList<BasicDBObject>();
+			orQ2.add(new BasicDBObject("vital_signs.heart_rate", new BasicDBObject("$gte", heart_rate)));
+			orQ2.add(orQuery);
+			orQuery2.put("$or", orQ2);
+			
+			
 			//Se une la consulta que llevábamos, con el or multiple 
 			List<BasicDBObject> obj1 = new ArrayList<BasicDBObject>();
 			obj1.add(orQuery);
@@ -224,10 +232,17 @@ public class MascotaSvc extends ConnectionBD{
 		
 		//Se itera el cursor, y se agrega a una lista de DBObject, para retornarla. Esta lista tiene todos los documentos que 
 		//cumplen con nuestras condiciones
-		for(Iterator<DBObject> it = dbc.iterator(); dbc.hasNext();) {
+		
+		Iterator<DBObject> it = dbc.iterator();
+	
+		while (it.hasNext()) {
 			objs.add(it.next());
+		
+			
 		}
 		
+	
+
 		return objs;
 	}
 
