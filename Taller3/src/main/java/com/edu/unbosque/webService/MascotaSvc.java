@@ -137,33 +137,52 @@ public class MascotaSvc extends ConnectionBD{
 		return geo;
 	}
 	
+	
+	/**
+	 * 
+	 * @param m una mascota a la cuál veremos si tiene signos vitales fuera de lo normal en un rango de fechas
+	 * @param init fecha desde donde veremos los registros de una mascota
+	 * @param fin fecha hasta donde veremos los registros de una mascota
+	 * @return documentos que cumplen con las condiciones de nuestro query
+	 */
 	@GET
 	@Path("/findRareSings")
 	@Consumes({MediaType.APPLICATION_JSON})
 	@Produces({MediaType.APPLICATION_JSON})
 	public List<DBObject> findRareSings(MascotaVO m, @QueryParam("DateInit") Date init, @QueryParam("DateEnd") Date fin) {
 		
+		//Query de in, donde se buscarán los documentos que estén entre un rango de dos fechas
 		BasicDBObject inQuery = new BasicDBObject();
 
+		//Se crea una lista donde estarán las dos dates para nuestro in
 		List<Date> list = new ArrayList<Date>();
+		
+		//Se añaden los dates a la lista
 		list.add(init);
 		list.add(fin);
+		
+		//Query de in
 		inQuery.put("timestamp", new BasicDBObject("$in", list));
 
+		//Se une el query anterior mediante un AND, con una consulta de que el microchip sea igual al microchip del JSon que entra al método
 		BasicDBObject andQuery1 = new BasicDBObject();
 		List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
 		obj.add(new BasicDBObject("microchip", m.getMicrochip()));
 		obj.add(inQuery);
 		andQuery1.put("$and", obj);
 
+		//Se obtiene la especie de la mascota que está entrando en el json, para posteriormente entrar a un IF ELSE, dependiendo de si es Cat o Dog
 		String specie = collection.findOne(new BasicDBObject("microchip", m.getMicrochip())).get("species").toString();
 		BasicDBObject andQuery2 = new BasicDBObject();
 		BasicDBObject orQuery = new BasicDBObject();
 		if (specie.equalsIgnoreCase("Cat")) {
+			
+			//Signos vitales para un gato desde donde se considera anormal
 			Double temp = 39.2;
 			Double heart_rate = 200.0;
 			Double breathing_frecuency = 30.0;
 
+			//Or multiple, donde se compara si cada signo vital está por encima del valor sugerido 
 			List<BasicDBObject> orQ = new ArrayList<BasicDBObject>();
 			orQ.add(new BasicDBObject(new BasicDBObject("vital_signs.temperature", new BasicDBObject("$gte", temp))));
 			orQ.add(new BasicDBObject("vital_signs.breathing_frecuency",
@@ -171,21 +190,27 @@ public class MascotaSvc extends ConnectionBD{
 			orQ.add(new BasicDBObject("vital_signs.heart_rate", new BasicDBObject("$gte", heart_rate)));
 			orQuery.put("$or", orQ);
 
+			//Se une la consulta que llevábamos, con el or multiple 
 			List<BasicDBObject> obj1 = new ArrayList<BasicDBObject>();
 			obj1.add(orQuery);
 			obj1.add(andQuery1);
 			andQuery2.put("$and", obj1);
 		} else if (specie.equalsIgnoreCase("Dog")) {
+			
+			//Signos vitales para un perro desde donde se considera anormal
 			Double temp = 39.2;
 			Double heart_rate = 120.0;
 			Double breathing_frecuency = 30.0;
 
+			//Or multiple, donde se compara si cada signo vital está por encima del valor sugerido 
 			List<BasicDBObject> orQ = new ArrayList<BasicDBObject>();
 			orQ.add(new BasicDBObject(new BasicDBObject("vital_signs.temperature", new BasicDBObject("$gte", temp))));
 			orQ.add(new BasicDBObject("vital_signs.breathing_frecuency",
 					new BasicDBObject("$gte", breathing_frecuency)));
 			orQ.add(new BasicDBObject("vital_signs.heart_rate", new BasicDBObject("$gte", heart_rate)));
 			orQuery.put("$or", orQ);
+
+			//Se une la consulta que llevábamos, con el or multiple 
 
 			List<BasicDBObject> obj1 = new ArrayList<BasicDBObject>();
 			obj1.add(orQuery);
@@ -193,9 +218,12 @@ public class MascotaSvc extends ConnectionBD{
 			andQuery2.put("$and", obj1);
 		}
 		
+		//Se obtiene el cursor de la consulta final
 		DBCursor dbc = collection.find(andQuery2);
 		List<DBObject> objs = new ArrayList<DBObject>();
 		
+		//Se itera el cursor, y se agrega a una lista de DBObject, para retornarla. Esta lista tiene todos los documentos que 
+		//cumplen con nuestras condiciones
 		for(Iterator<DBObject> it = dbc.iterator(); dbc.hasNext();) {
 			objs.add(it.next());
 		}
