@@ -10,5 +10,5 @@
 - MongoBD Compass
 - Redis
 
-## URL del vídeo:
-- 
+## URL del vídeo en GOOGLE DRIVE:
+- https://drive.google.com/file/d/1LvM8cLHato5h6OafTTOD1kot02uxHw_O/view?usp=sharing
