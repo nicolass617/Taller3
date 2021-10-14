@@ -2,6 +2,7 @@ package com.edu.unbosque.webService;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -9,6 +10,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.edu.unbosque.connectiobd.ConnectionBD;
 import com.edu.unbosque.model.FeaturesVO;
@@ -19,6 +21,7 @@ import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 /**
  * 
  * @author Nicolás Ávila, Sebastián Moncaleano, Diego Torres
@@ -138,34 +141,66 @@ public class MascotaSvc extends ConnectionBD{
 	@Path("/findRareSings")
 	@Consumes({MediaType.APPLICATION_JSON})
 	@Produces({MediaType.APPLICATION_JSON})
-	public DBCursor findRareSings(MascotaVO m, Date init, Date fin) {
+	public List<DBObject> findRareSings(MascotaVO m, @QueryParam("DateInit") Date init, @QueryParam("DateEnd") Date fin) {
 		
 		BasicDBObject inQuery = new BasicDBObject();
-		
+
 		List<Date> list = new ArrayList<Date>();
-	    list.add(init);
-	    list.add(fin);
-	    inQuery.put("timestamp", new BasicDBObject("$in", list));
-		
+		list.add(init);
+		list.add(fin);
+		inQuery.put("timestamp", new BasicDBObject("$in", list));
+
 		BasicDBObject andQuery1 = new BasicDBObject();
 		List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
 		obj.add(new BasicDBObject("microchip", m.getMicrochip()));
 		obj.add(inQuery);
 		andQuery1.put("$and", obj);
-		  
+
+		String specie = collection.findOne(new BasicDBObject("microchip", m.getMicrochip())).get("species").toString();
 		BasicDBObject andQuery2 = new BasicDBObject();
-		List<BasicDBObject> obj1 = new ArrayList<BasicDBObject>();
-		obj1.add(new BasicDBObject("microchip", m.getMicrochip()));
-		obj1.add(andQuery1);
-		andQuery2.put("$and", obj1);
+		BasicDBObject orQuery = new BasicDBObject();
+		if (specie.equalsIgnoreCase("Cat")) {
+			Double temp = 39.2;
+			Double heart_rate = 200.0;
+			Double breathing_frecuency = 30.0;
+
+			List<BasicDBObject> orQ = new ArrayList<BasicDBObject>();
+			orQ.add(new BasicDBObject(new BasicDBObject("vital_signs.temperature", new BasicDBObject("$gte", temp))));
+			orQ.add(new BasicDBObject("vital_signs.breathing_frecuency",
+					new BasicDBObject("$gte", breathing_frecuency)));
+			orQ.add(new BasicDBObject("vital_signs.heart_rate", new BasicDBObject("$gte", heart_rate)));
+			orQuery.put("$or", orQ);
+
+			List<BasicDBObject> obj1 = new ArrayList<BasicDBObject>();
+			obj1.add(orQuery);
+			obj1.add(andQuery1);
+			andQuery2.put("$and", obj1);
+		} else if (specie.equalsIgnoreCase("Dog")) {
+			Double temp = 39.2;
+			Double heart_rate = 120.0;
+			Double breathing_frecuency = 30.0;
+
+			List<BasicDBObject> orQ = new ArrayList<BasicDBObject>();
+			orQ.add(new BasicDBObject(new BasicDBObject("vital_signs.temperature", new BasicDBObject("$gte", temp))));
+			orQ.add(new BasicDBObject("vital_signs.breathing_frecuency",
+					new BasicDBObject("$gte", breathing_frecuency)));
+			orQ.add(new BasicDBObject("vital_signs.heart_rate", new BasicDBObject("$gte", heart_rate)));
+			orQuery.put("$or", orQ);
+
+			List<BasicDBObject> obj1 = new ArrayList<BasicDBObject>();
+			obj1.add(orQuery);
+			obj1.add(andQuery1);
+			andQuery2.put("$and", obj1);
+		}
 		
+		DBCursor dbc = collection.find(andQuery2);
+		List<DBObject> objs = new ArrayList<DBObject>();
 		
-		return collection.find(andQuery2);
+		for(Iterator<DBObject> it = dbc.iterator(); dbc.hasNext();) {
+			objs.add(it.next());
+		}
 		
-	
-		
+		return objs;
 	}
-	
-	
 
 }

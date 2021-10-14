@@ -1,7 +1,6 @@
 package com.edu.unbosque.model;
 
 import java.util.Date;
-import java.util.List;
 /**
  * 
  * @author Nicolás Ávila, Sebastián Moncaleano, Diego Torres
